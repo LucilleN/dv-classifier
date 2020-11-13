@@ -1,5 +1,5 @@
 # NLP Final Project: Identifying Domestic Violence in Social Media Posts
-Lucille Njoo, Manny Barreto, Cooper LaRhette
+[@Lucille Njoo](https://github.com/LucilleN), [@Manny Barreto](https://github.com/mannybarreto), [@Cooper LaRhette](https://github.com/coopslarhette)
 
 ## I. Objective / Hypothesis 
 The objective of our research project is to reimplement a slightly simplified version of the domestic violence text classifier created by Subramani et al. in [1], and to build off of their work by applying augmenting the original dataset with new datasets [2] and comparing the performance of different neural network architectures.
