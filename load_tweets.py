@@ -3,9 +3,11 @@
 # collects data from the publicly released data file
 import json
 from twython import Twython
+from config import API_KEY, SECRET_KEY, BEARER_TOKEN
 
 # enter your APP_KEY and ACCESS_TOKEN from your Twitter API account here
-twitter = Twython(APP_KEY, access_token=ACCESS_TOKEN)
+twitter = Twython(API_KEY, access_token=BEARER_TOKEN)
+
 
 class Tweet():
     # A container class for tweet information
@@ -20,10 +22,11 @@ class Tweet():
     def __str__(self):
         return "id: " + self.id + " " + self.label + ": " + self.text
 
+
 def collectTwitterData(twitter):
     tweetDict = {}
     # open the shared file and extract its data for all tweet instances
-    with open("stayedLeftData.json") as f:
+    with open("data/stayedLeftData.json") as f:
         for line in f:
             data = json.loads(line)
             label = data['label']
@@ -50,7 +53,7 @@ def collectTwitterData(twitter):
                 tweet.json = tweetJSON
                 # If this tweet was split, get the right part of the text
                 if tweet.startIdx is not None:
-                    tweet.text = tweetJSON['text'][tweet.startIdx : tweet.endIdx]
+                    tweet.text = tweetJSON['text'][tweet.startIdx: tweet.endIdx]
                 # Otherwise get all the text
                 else:
                     tweet.text = tweetJSON['text']
@@ -64,9 +67,10 @@ def collectTwitterData(twitter):
         tweet = tweetDict[idStr]
         tweet.json = tweetJSON
         if tweet.startIdx is not None:
-            tweet.text = tweetJSON['text'][tweet.startIdx : tweet.endIdx]
+            tweet.text = tweetJSON['text'][tweet.startIdx: tweet.endIdx]
         else:
             tweet.text = tweetJSON['text']
+        print(tweet)
 
     # return the Tweet objects in a list
     return list(tweetDict.values())
