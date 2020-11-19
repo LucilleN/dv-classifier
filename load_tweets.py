@@ -2,6 +2,7 @@
 
 # collects data from the publicly released data file
 import json
+import pandas as pd
 from twython import Twython
 from config import API_KEY, SECRET_KEY, BEARER_TOKEN
 
@@ -11,13 +12,11 @@ twitter = Twython(API_KEY, access_token=BEARER_TOKEN)
 
 class Tweet():
     # A container class for tweet information
-    def __init__(self, json, text, label, startIdx, endIdx, idStr):
+    def __init__(self, json, text, label, idStr):
         self.json = json
         self.text = text
         self.label = label
         self.id = idStr
-        self.startIdx = startIdx
-        self.endIdx = endIdx
 
     def __str__(self):
         return "id: " + self.id + " " + self.label + ": " + self.text
@@ -25,16 +24,13 @@ class Tweet():
 
 def collectTwitterData(twitter):
     tweetDict = {}
+    data = pd.read_csv('data/dv_dataset_consolidated.csv')
     # open the shared file and extract its data for all tweet instances
-    with open("data/stayedLeftData.json") as f:
-        for line in f:
-            data = json.loads(line)
-            label = data['label']
-            startIdx = data['startIdx']
-            endIdx = data['endIdx']
-            idStr = data['id']
-            tweet = Tweet(None, None, label, startIdx, endIdx, idStr)
-            tweetDict[idStr] = tweet
+    for _, row in data.iterrows():
+        label = row['class']
+        idStr = row['post_id']
+        tweet = Tweet(None, None, label, idStr)
+        tweetDict[idStr] = tweet
 
     # download the tweets JSON to get the text and additional info
     i = 0
@@ -74,3 +70,5 @@ def collectTwitterData(twitter):
 
     # return the Tweet objects in a list
     return list(tweetDict.values())
+
+collectTwitterData(twitter)

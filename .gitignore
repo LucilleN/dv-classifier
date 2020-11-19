@@ -133,3 +133,6 @@ config.py
 
 # PyCharm stuff
 .idea
+
+# NeoVim
+tags
