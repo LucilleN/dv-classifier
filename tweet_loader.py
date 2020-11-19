@@ -9,8 +9,8 @@ from twython import Twython
 from config import API_KEY, SECRET_KEY, BEARER_TOKEN
 
 # enter your APP_KEY and ACCESS_TOKEN from your Twitter API account here
-twitter = Twython(API_KEY, access_token=BEARER_TOKEN)
-
+twitter = Twython(app_key=API_KEY, app_secret=SECRET_KEY, access_token=BEARER_TOKEN, token_type='bearer')
+print("twitter object: {}".format(twitter))
 
 class Tweet():
     # A container class for tweet information
@@ -21,7 +21,7 @@ class Tweet():
         self.id = idStr
 
     def __str__(self):
-        return "id: " + self.id + " " + self.label + ": " + self.text
+        return "id: {}, label: {}, text: {}".format(self.id, self.label, self.text)
 
 
 def collectTwitterData(twitter):
@@ -45,7 +45,9 @@ def collectTwitterData(twitter):
             print("dumping 100...")
             # Make the API call
             results = twitter.lookup_status(id=chunk)
+            print("results: {}".format(results))
             for tweetJSON in results:
+                print("going through results")
                 idStr = tweetJSON['id_str']
                 tweet = tweetDict[idStr]
                 tweet.json = tweetJSON
@@ -61,6 +63,7 @@ def collectTwitterData(twitter):
     print("dumping rest...")
     results = twitter.lookup_status(id=chunk)
     for tweetJSON in results:
+        print("going through results")
         idStr = tweetJSON['id_str']
         tweet = tweetDict[idStr]
         tweet.json = tweetJSON
@@ -73,4 +76,6 @@ def collectTwitterData(twitter):
     # return the Tweet objects in a list
     return list(tweetDict.values())
 
-collectTwitterData(twitter)
+data = collectTwitterData(twitter)
+# for tweet in data:
+#     print(tweet)
