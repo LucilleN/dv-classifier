@@ -130,9 +130,15 @@ dmypy.json
 
 # API keys
 config.py
+# config.js
 
 # PyCharm stuff
 .idea
 
 # NeoVim
 tags
+
+# VSCode
+.vscode
+
+node_modules
