@@ -16,6 +16,18 @@ CLASSES = {
     'survivorsofabuse': 0 # 512 samples
 }
 
+LABEL_TO_IX = {
+    'critical': 0,
+    'noncritical': 1,
+    'general': 2
+}
+
+IX_TO_LABEL = {
+    0: 'critical',
+    1: 'noncritical',
+    2: 'general'
+}
+
 def load_data(file_path):
     """
     Loads text and labels from dataset stored in file_path, a CSV.
