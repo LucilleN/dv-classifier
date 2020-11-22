@@ -16,10 +16,27 @@ async function getPostIDs () {
     // console.log("parsing one row of CSV, row[1] is: " + row[1])
     postIDs.push(row[1])
   })
-  .on("end", () => {
+  .on("end", async () => {
     console.log("Done reading " + filePath);
     // console.log("Returning postIDs: " + postIDs)
+    
     return postIDs;
+
+    // const fb = await get_access_token()
+    // postIDs.forEach(postId => {
+    //   fb.api(`/${postId}`, function (response) {
+    //     if (response && !response.error) {
+    //       console.log("(Success)")
+    //       console.log(response);
+    //     } else {
+    //       console.log("[!] Getting FB Post Failed:")
+    //       console.log(response.error);
+    //     }
+    //   });
+    // });
+
+    // console.log("End of on-end callback")
+
   });
 
 }
@@ -53,6 +70,7 @@ async function get_access_token () {
 async function load_posts () {
   const postIDs = await getPostIDs()
   // console.log("in load_posts, post IDs is: " + postIDs);
+
   const fb = await get_access_token()
   await postIDs.forEach(postId => {
     fb.api(`/${postId}`, function (response) {
