@@ -19,7 +19,9 @@ class RNN(nn.Module):
         super().__init__()
         # self.bidirectional = bidirectional
         self.num_layers = num_layers
-        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.vocab_size = vocab_size
+        self.output_size = output_size
         self.emb = nn.Embedding(vocab_size, hidden_size)
         self.rnn = nn.RNN(hidden_size, hidden_size,
                           num_layers=num_layers, batch_first=False)
@@ -30,13 +32,16 @@ class RNN(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq):
-        # batch_size, seq_len, _ = input_seq.size()
+        # currently having dim issues here, although it may be related to what is happening when training tensors
+        # get loaded in
         embeds = self.emb(input_seq)
-        # h0 = Variable(torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size))
-        # print(len(input_seq), input_seq.size(0))
-        (out, hn_last) = self.rnn(embeds.view(len(input_seq), 1, -1)) # prev: RuntimeError: input must have 3 dimensions, got 2
+        # correct dims here? (num_layers, batch, input_size) vs (num_layers, batch, output_size)?, although I no
+        # longer think this is need since RNN does this for us
+        h0 = Variable(torch.zeros(self.num_layers, input_seq.size(0),
+                                  self.vocab_size))
+        (out, hn_last) = self.rnn(embeds.view(len(input_seq), 1, -1))
 
-        out = out[0, :, :]
+        out = out[:, -1:, :]  # still not quite sure what this does
 
         scores = self.lin(out)
         return self.sigmoid(scores)
