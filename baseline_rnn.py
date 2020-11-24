@@ -4,15 +4,13 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-from torch.autograd import Variable
 
 from data_loader import IX_TO_LABEL, LABEL_TO_IX, load_data
 
 
 class RNN(nn.Module):
     """
-    Implementation of LSTM neural network. Set the init parameter `bidirectional` to True
-    to use a bidirectional LSTM (a BLSTM).
+    Implementation of RNN neural network.
     """
 
     def __init__(self, vocab_size, hidden_size, output_size, num_layers, bidirectional=False):
@@ -23,18 +21,13 @@ class RNN(nn.Module):
         self.emb = nn.Embedding(vocab_size, hidden_size)
         self.rnn = nn.RNN(hidden_size, hidden_size,
                           num_layers=num_layers, batch_first=False)
-        # When bidirectional, the output of the LSTM will be twice as long, so we need to
-        # multiply the next layer's dims by 2
         linear_size = hidden_size if not bidirectional else hidden_size * 2
         self.lin = nn.Linear(linear_size, output_size)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq):
-        # batch_size, seq_len, _ = input_seq.size()
         embeds = self.emb(input_seq)
-        # h0 = Variable(torch.zeros(self.num_layers, input_seq.size(0), self.hidden_size))
-        # print(len(input_seq), input_seq.size(0))
-        (out, hn_last) = self.rnn(embeds.view(len(input_seq), 1, -1)) # prev: RuntimeError: input must have 3 dimensions, got 2
+        (out, hn_last) = self.rnn(embeds.view(len(input_seq), 1, -1))
 
         out = out[0, :, :]
 
