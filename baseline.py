@@ -1,6 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 from data_loader import load_data
 
@@ -30,3 +31,7 @@ if __name__ == "__main__":
     features_test = vectorizer.transform(posts_test)
     score_test = model_LR.score(features_test, labels_test)
     print('  LR Testing set score: ', score_test)
+
+    predictions_test = model_LR.predict(features_test)
+    report = classification_report(labels_test, predictions_test)
+    print(report)
