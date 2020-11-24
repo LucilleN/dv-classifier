@@ -24,14 +24,15 @@ class LSTM(nn.Module):
         # multiply the next layer's dims by 2
         linear_dims = hidden_dim if not bidirectional else hidden_dim * 2
         self.linear = nn.Linear(linear_dims, num_y)
-        # self.softmax = nn.LogSoftmax(dim=1)
+        self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, text):
         embeds = self.emb(text)
         lstm_out, _ = self.lstm(embeds.view(len(text), 1, -1))
         # label_space = self.linear(lstm_out.view(len(text), -1))
         # return self.softmax(label_space)
-        return self.linear(lstm_out)
+        # return self.linear(lstm_out)
+        return self.softmax(lstm_out)
 
 
 def predict_for_one_post(model, post, tok_to_ix):
@@ -87,8 +88,8 @@ def train_nn(model, optimizer, loss_fn, n_epochs, posts_train, labels_train, tok
             predicted_labels.append(pred_y_label)
 
             # Adjust weights through backpropagation by comparing our predicted tags to the correct tags
-            y = label_to_ix[correct_label]
-            y_train_tensor = torch.LongTensor(y)
+            # y = label_to_ix[correct_label]
+            y_train_tensor = torch.LongTensor(correct_label)
 
             loss = loss_fn(pred_y_tensor, y_train_tensor)
             loss.backward()
@@ -120,6 +121,7 @@ if __name__ == "__main__":
     model_LSTM = LSTM(num_words=len(vocab), emb_dim=emb_dim, num_y=len(unique_labels))
     optimizer = optim.Adam(model_LSTM.parameters(), lr=learning_rate)
     loss_fn = nn.NLLLoss()
+    loss_fn = nn.CrossEntropyLoss()
 
     train_nn(model_LSTM, optimizer, loss_fn, n_epochs, posts_train, labels_train, tok_to_ix=vocab, label_to_ix=LABEL_TO_IX, ix_to_label=IX_TO_LABEL)
     
