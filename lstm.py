@@ -102,7 +102,7 @@ if __name__ == "__main__":
     num_layers = 2
     vocab_size = len(tok_to_ix)
     output_size = len(np.unique(train_labels))
-    n_epochs = 3
+    n_epochs = 10
 
     model = LSTM(vocab_size=vocab_size,
                  hidden_size=hidden_size, output_size=output_size, num_layers=num_layers, bidirectional=True)
@@ -183,16 +183,16 @@ Output:
 
 ==============================
 
-Evaluation:
+Evaluation
               precision    recall  f1-score   support
 
-           0       0.00      0.00      0.00       253
-           1       0.66      0.71      0.69       324
-           2       0.96      0.99      0.97      6465
+           0       1.00      0.03      0.05       260
+           1       0.70      0.68      0.69       335
+           2       0.95      0.99      0.97      6447
 
     accuracy                           0.94      7042
-   macro avg       0.54      0.57      0.55      7042
-weighted avg       0.91      0.94      0.93      7042
+   macro avg       0.89      0.57      0.57      7042
+weighted avg       0.94      0.94      0.93      7042
 
 ==============================
 """
