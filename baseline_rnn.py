@@ -8,6 +8,12 @@ from sklearn.preprocessing import OneHotEncoder
 
 from data_loader import load_data, LABEL_TO_IX, IX_TO_LABEL
 
+"""
+Current Issues:
+- one hot vectors vs tok_to_ix for translating sents to vectors
+- word embeddings on RNN???
+- batching during training?
+"""
 
 class RNN(nn.Module):
     def __init__(self, vocab_size, hidden_size, output_size):
