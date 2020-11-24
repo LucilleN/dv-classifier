@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
 from data_loader import IX_TO_LABEL, LABEL_TO_IX, load_data
 
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 
     posts, labels = load_data('data/reddit_submissions.csv')
 
-    posts_train, posts_test, train_label, test_label = train_test_split(
+    posts_train, posts_test, train_labels, test_labels = train_test_split(
         posts, labels, test_size=0.2)
 
     tok_to_ix = build_vocab(posts_train)
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     learning_rate = 0.01
     num_layers = 1
     vocab_size = len(tok_to_ix)
-    output_size = len(np.unique(train_label))
+    output_size = len(np.unique(train_labels))
     n_epochs = 3
 
     model = LSTM(vocab_size=vocab_size,
@@ -124,15 +125,11 @@ if __name__ == "__main__":
         sample_counter = 0
 
         # Gradient descent algorithm for each data sample
-        for x_train_tensor, correct_label in zip(train_data, train_label):
+        for x_train_tensor, correct_label in zip(train_data, train_labels):
             
             sample_counter += 1
             if sample_counter % 1000 == 0:
                 print("  > sample {} of {}".format(sample_counter, num_samples))
-            
-            # tokens = post.split(' ')
-            # x = [tok_to_ix[tok] if tok in tok_to_ix else tok_to_ix['<UNK>'] for tok in tokens]
-            # x_train_tensor = torch.LongTensor(x).to(device)
 
             # Make a prediction on the training data
             y_predicted_tensor = model(x_train_tensor)
@@ -153,7 +150,7 @@ if __name__ == "__main__":
             with torch.no_grad():
                 running_loss += loss.item()
 
-        print(f"""\n--------------\nEnd of Epoch {epoch}\nLoss: {running_loss/len(train_label)}%\n--------------\n""")
+        print(f"""\n--------------\nEnd of Epoch {epoch}\nLoss: {running_loss/len(train_labels)}\n--------------\n""")
 
     """ 
     Evaluate the model
@@ -161,19 +158,15 @@ if __name__ == "__main__":
     with torch.no_grad():
         model.eval()
         predicted_labels = []
-        for post, correct_label in zip(train_data, train_label):
-            pred_y_tensor = make_single_prediction(model=model, text=tweet, tok_to_ix=tok_to_ix)
+        for x_test_tensor, correct_label in zip(test_data, test_labels):
+            y_predicted_tensor = model(x_test_tensor)
 
-            predicted_label = np.argmax(pred_y_tensor.data.numpy())
+            # Store the labels that the model predicts so that we can calculate the accuracy, etc. later
+            predicted_label = np.argmax(y_predicted_tensor.data.numpy())
             predicted_labels.append(predicted_label)
 
         print("\n==============================")
         print("\nEvaluation")
-
-        accuracy = get_accuracy(labels, predicted_labels)
-        print("Accuracy:", accuracy)
-
-        print("\n==============================\n")
-
-        report = classification_report(y_true=labels, y_pred=predicted_labels)
+        report = classification_report(y_true=test_labels, y_pred=predicted_labels)
         print(report)
+        print("\n==============================")
