@@ -170,3 +170,26 @@ if __name__ == "__main__":
         report = classification_report(y_true=test_labels, y_pred=predicted_labels)
         print(report)
         print("\n==============================")
+
+
+"""
+Output:
+
+==============================
+
+Evaluation
+/Users/lucillenjoo/Documents/537/dv-classifier/env/lib/python3.8/site-packages/sklearn/metrics/_classification.py:1221: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00       251
+           1       0.00      0.00      0.00       327
+           2       0.92      1.00      0.96      6464
+
+    accuracy                           0.92      7042
+   macro avg       0.31      0.33      0.32      7042
+weighted avg       0.84      0.92      0.88      7042
+
+
+==============================
+"""
