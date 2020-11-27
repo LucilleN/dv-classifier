@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 from data_loader import IX_TO_LABEL, LABEL_TO_IX, load_data
-
+from utils import  build_vocab, strings_to_tensors
 
 class LSTM(nn.Module):
     """
@@ -44,36 +44,6 @@ class LSTM(nn.Module):
         return self.sigmoid(scores)
 
 
-def build_vocab(posts):
-    """
-    Given the training set of posts, constructs the vocabulary dictionary, `tok_to_ix`, that
-    maps unique tokens to their index in the vocabulary.
-    """
-    tok_to_ix = {}
-    for post in posts:
-        tokens = post.split(' ')
-        for token in tokens:
-            tok_to_ix.setdefault(token, len(tok_to_ix))
-    # Manually add our own placeholder tokens
-    tok_to_ix.setdefault('<UNK>', len(tok_to_ix))
-    return tok_to_ix
-
-
-def strings_to_tensors(posts_array, tok_to_ix):
-    """
-    Converts each string in an array of strings into a tensor that we will input into the model
-    so that we don't have to convert each sample to a tensor again at each epoch.
-    """
-    tensors = []
-    for post in posts_array:
-        tokens = post.split(' ')
-        x = [tok_to_ix[tok] if tok in tok_to_ix else tok_to_ix['<UNK>']
-             for tok in tokens]
-        x_train_tensor = torch.LongTensor(x).to(device)
-        tensors.append(x_train_tensor)
-    return tensors
-
-
 if __name__ == "__main__":
 
     # If there's an available GPU, lets train on it
@@ -89,10 +59,12 @@ if __name__ == "__main__":
 
     tok_to_ix = build_vocab(posts_train)
 
-    # Convert all posts to tensors that we will input into the model so that we do
-    # not have to convert them again at every epoch
-    train_data = strings_to_tensors(posts_train, tok_to_ix)
-    test_data = strings_to_tensors(posts_test, tok_to_ix)
+    """
+    Convert all posts to tensors that we will input into the model so that we do
+    not have to convert them again at every epoch
+    """
+    train_data = strings_to_tensors(posts_train, tok_to_ix, device)
+    test_data = strings_to_tensors(posts_test, tok_to_ix, device)
 
     """
     Specify model's hyperparameters and architecture
@@ -183,16 +155,16 @@ Output:
 
 ==============================
 
-Evaluation
+Evaluation:
               precision    recall  f1-score   support
 
-           0       1.00      0.03      0.05       260
-           1       0.70      0.68      0.69       335
-           2       0.95      0.99      0.97      6447
+           0       0.00      0.00      0.00       253
+           1       0.66      0.71      0.69       324
+           2       0.96      0.99      0.97      6465
 
     accuracy                           0.94      7042
-   macro avg       0.89      0.57      0.57      7042
-weighted avg       0.94      0.94      0.93      7042
+   macro avg       0.54      0.57      0.55      7042
+weighted avg       0.91      0.94      0.93      7042
 
 ==============================
 """
