@@ -4,9 +4,10 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from tqdm import trange
 
-from data_loader import IX_TO_LABEL, LABEL_TO_IX, load_data
-from utils import build_vocab, strings_to_tensors
+from data_loader import load_data
+from utils import build_vocab, make_minibatch, strings_to_tensors
 
 
 class RNN(nn.Module):
@@ -28,7 +29,7 @@ class RNN(nn.Module):
 
     def forward(self, input_seq):
         embeds = self.emb(input_seq)
-        (out, hn_last) = self.rnn(embeds.view(len(input_seq), 1, -1))
+        (out, hn_last) = self.rnn(embeds)
 
         out = out[0, :, :]
 
@@ -54,8 +55,11 @@ if __name__ == "__main__":
 
     # Convert all posts to tensors that we will input into the model so that we do
     # not have to convert them again at every epoch
-    train_data = strings_to_tensors(posts_train, tok_to_ix, device)
-    test_data = strings_to_tensors(posts_test, tok_to_ix, device)
+    train_data = strings_to_tensors(posts_train, tok_to_ix)
+    test_data = strings_to_tensors(posts_test, tok_to_ix)
+
+    train_labels = torch.LongTensor(train_labels)
+    test_labels = torch.LongTensor(test_labels)
 
     """
     Specify model's hyperparameters and architecture
@@ -66,59 +70,55 @@ if __name__ == "__main__":
     num_layers = 1
     vocab_size = len(tok_to_ix)
     output_size = len(np.unique(train_labels))
-    n_epochs = 3
+    n_epochs = 10
+    bs = 50
 
     model = RNN(vocab_size=vocab_size,
                 hidden_size=hidden_size, output_size=output_size, num_layers=num_layers)
     model = model.to(device)
-    loss_func = nn.BCELoss()
+    loss_func = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     """
     Train the model
     """
-
-    for epoch in range(1, n_epochs + 1):
+    epochs = trange(1, n_epochs + 1)
+    for epoch in epochs:
         model.train()
-
-        print(
-            f"""\n--------------\nBeginning Epoch {epoch} of {n_epochs}\n--------------\n""")
 
         # Accumulate loss for all samples in this epoch
         running_loss = 0
-
+        num_batches = 0
         num_samples = len(train_data)
-        sample_counter = 0
+
+        shuffled_indices = torch.randperm(num_samples)
 
         # Gradient descent algorithm for each data sample
-        for x_train_tensor, correct_label in zip(train_data, train_labels):
+        batches = trange(0, num_samples - bs, bs, leave=False)
+        for count in batches:
+            # Extract minibatches and send to device
+            indices = shuffled_indices[count: count + bs]
+            minibatch_data, minibatch_label = make_minibatch(
+                indices, train_data, train_labels)
+            minibatch_data, minibatch_label = minibatch_data.to(
+                device), minibatch_label.to(device)
 
-            sample_counter += 1
-            if sample_counter % 1000 == 0:
-                print("  > sample {} of {}".format(
-                    sample_counter, num_samples))
-
-            # Make a prediction on the training data
-            y_predicted_tensor = model(x_train_tensor)
-
-            # Create the true label's tensor by creating a zeros-array with the element at the
-            # correct label's index set to 1.0.
-            y_true_list = np.zeros(output_size)
-            y_true_list[correct_label] = 1.0
-            y_true_tensor = torch.Tensor([y_true_list]).to(device)
+            # Make predictions on the training data
+            scores = model(minibatch_data)
 
             # Backpropagation
-            loss = loss_func(y_predicted_tensor, y_true_tensor)
+            loss = loss_func(scores, minibatch_label)
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
 
             # Compute metrics
             with torch.no_grad():
+                num_batches += 1
                 running_loss += loss.item()
 
-        print(
-            f"""\n--------------\nEnd of Epoch {epoch}\nLoss: {running_loss / len(train_labels)}\n--------------\n""")
+        epochs.set_description(
+            f'Epoch {epoch} / {n_epochs} | Loss: {running_loss/num_batches}')
 
     """ 
     Evaluate the model
@@ -126,17 +126,26 @@ if __name__ == "__main__":
     with torch.no_grad():
         model.eval()
         predicted_labels = []
-        for x_test_tensor, correct_label in zip(test_data, test_labels):
-            y_predicted_tensor = model(x_test_tensor)
-            y_predicted_tensor = y_predicted_tensor.to('cpu')
 
-            # Store the labels that the model predicts so that we can calculate the accuracy, etc. later
-            predicted_label = np.argmax(y_predicted_tensor.data.numpy())
-            predicted_labels.append(predicted_label)
+        # cycle through test set in batches
+        batches = trange(0, len(test_data) - bs, bs,
+                         desc='evaluating on test set', leave=False)
+        for i in batches:
+            # extract minibatch
+            indices = torch.arange(i, i + bs)
+            minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+            minibatch_data = minibatch_data.to(device)
 
-        print("\n==============================")
-        print("\nEvaluation")
-        report = classification_report(
-            y_true=test_labels, y_pred=predicted_labels)
-        print(report)
-        print("\n==============================")
+            # make and score predictions
+            scores = model(minibatch_data)
+            predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        # evaluate remaining samples
+        indices = torch.arange(len(predicted_labels), len(test_labels))
+        minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+        minibatch_data = minibatch_data.to(device)
+
+        scores = model(minibatch_data)
+        predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        print(classification_report(y_true=test_labels, y_pred=predicted_labels))
