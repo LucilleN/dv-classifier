@@ -17,7 +17,7 @@ def build_vocab(posts):
     return tok_to_ix
 
 
-def strings_to_tensors(posts_array, tok_to_ix, device):
+def strings_to_tensors(posts_array, tok_to_ix):
     """
     Converts each string in an array of strings into a tensor that we will input into the model
     so that we don't have to convert each sample to a tensor again at each epoch.
@@ -27,7 +27,7 @@ def strings_to_tensors(posts_array, tok_to_ix, device):
         tokens = post.split(' ')
         x = [tok_to_ix[tok] if tok in tok_to_ix else tok_to_ix['<UNK>']
              for tok in tokens]
-        x_train_tensor = torch.LongTensor(x).to(device)
+        x_train_tensor = torch.LongTensor(x)
         tensors.append(x_train_tensor)
     return tensors
 
