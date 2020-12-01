@@ -97,21 +97,21 @@ if __name__ == "__main__":
         # Accumulate loss for all samples in this epoch
         running_loss = 0
         num_batches = 0
-
         num_samples = len(train_data)
+
         shuffled_indices = torch.randperm(num_samples)
 
         # Gradient descent algorithm for each data sample
-        batches = trange(0, num_samples - bs, bs)
+        batches = trange(0, num_samples - bs, bs, leave=False)
         for count in batches:
             # Extract minibatches and send to GPU
-            indices = shuffled_indices[count: count + bs]
+            indices = shuffled_indices[count : count + bs]
             minibatch_data, minibatch_label = make_minibatch(
                 indices, train_data, train_labels)
             minibatch_data, minibatch_label = minibatch_data.to(
                 device), minibatch_label.to(device)
 
-            # Make a prediction on the training data
+            # Make a predictions on the training data
             scores = model(minibatch_data)
 
             # Backpropagation
@@ -121,33 +121,43 @@ if __name__ == "__main__":
             optimizer.zero_grad()
 
             # Compute metrics
-            num_batches += 1
             with torch.no_grad():
+                num_batches += 1
                 running_loss += loss.item()
 
         epochs.set_description(
-            f'Epoch {epoch} / {n_epochs} | Loss: {running_loss/num_batches}')
+            f'Epoch {epoch}/{n_epochs} | Loss: {running_loss/num_batches}')
 
     """ 
     Evaluate the model
-    TODO: Move to function eval_on_test_set()
     """
     with torch.no_grad():
         model.eval()
         predicted_labels = []
-        for x_test_tensor, correct_label in zip(test_data, test_labels):
-            y_predicted_tensor = model(x_test_tensor)
 
-            # Store the labels that the model predicts so that we can calculate the accuracy, etc. later
-            predicted_label = np.argmax(y_predicted_tensor.data.numpy())
-            predicted_labels.append(predicted_label)
+        # cycle through test set in batches
+        batches = trange(0, len(test_data) - bs, bs,
+                         desc='evaluating on test set', leave=False)
+        for i in batches:
+            # extract minibatch
+            indices = torch.arange(i, i + bs)
+            minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+            minibatch_data = minibatch_data.to(device)
 
-        print("\n==============================")
-        print("\nEvaluation")
-        report = classification_report(
-            y_true=test_labels, y_pred=predicted_labels)
-        print(report)
-        print("\n==============================")
+            # make and score predictions
+            scores = model(minibatch_data)
+            predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        # evaluate remaining samples
+        indices = torch.arange(len(predicted_labels), len(test_labels))
+        minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+        minibatch_data = minibatch_data.to(device)
+
+        scores = model(minibatch_data)
+        predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        print(classification_report(y_true=test_labels, y_pred=predicted_labels))
+
 
 
 """
