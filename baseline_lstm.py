@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from tqdm import trange
 
-from data_loader import IX_TO_LABEL, LABEL_TO_IX, load_data
+from data_loader import load_data
 from utils import build_vocab, make_minibatch, strings_to_tensors
 
 
@@ -105,9 +105,11 @@ if __name__ == "__main__":
         batches = trange(0, num_samples - bs, bs)
         for count in batches:
             # Extract minibatches and send to GPU
-            indices = shuffled_indices[count : count + bs]
-            minibatch_data, minibatch_label = make_minibatch(indices, train_data, train_labels)
-            minibatch_data, minibatch_label = minibatch_data.to(device), minibatch_label.to(device)
+            indices = shuffled_indices[count: count + bs]
+            minibatch_data, minibatch_label = make_minibatch(
+                indices, train_data, train_labels)
+            minibatch_data, minibatch_label = minibatch_data.to(
+                device), minibatch_label.to(device)
 
             # Make a prediction on the training data
             scores = model(minibatch_data)
@@ -123,7 +125,8 @@ if __name__ == "__main__":
             with torch.no_grad():
                 running_loss += loss.item()
 
-        epochs.set_description(f'Epoch {epoch} / {n_epochs} | Loss: {running_loss/num_batches}')
+        epochs.set_description(
+            f'Epoch {epoch} / {n_epochs} | Loss: {running_loss/num_batches}')
 
     """ 
     Evaluate the model
