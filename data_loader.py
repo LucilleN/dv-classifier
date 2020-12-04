@@ -7,6 +7,8 @@ import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.sentence as nas
 import nlpaug.flow as nafc
 
+import argparse
+
 # The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
 # The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to articles, general statements about abuse, etc.
 # Everything else will be class 2, general/unrelated
@@ -36,7 +38,7 @@ IX_TO_LABEL = {
 }
 
 
-def load_data(file_path):
+def load_data(file_path, include_og=True, include_aug=False, fraction_class_2_to_load=1.0):
     """
     Loads text and labels from dataset stored in file_path, a CSV.
     """
@@ -61,7 +63,7 @@ def load_data(file_path):
     return (np.array(posts), np.array(labels))
 
 
-def augment_data():
+def augment_data(num_new_class_0, num_new_class_1, clear_old_augmented_data=False):
     # aug = naw.WordEmbsAug(
     # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
     # action="substitute")
@@ -70,25 +72,46 @@ def augment_data():
         model_path='bert-base-uncased', action="insert", device='cpu')
 
     new_rows = []
-    with open('data/reddit_submissions.csv') as f:  # open with append and read permission
+    with open('data/reddit_submissions.csv') as f:  # open with read permission
         reader = csv.reader(f)
         # Skip the first row that just has column names
         rows = list(reader)[1:]
+        print('unfiltered rows: {}'.format(len(rows)))
         rows_without_class_2 = list(filter(lambda r: CLASSES[r[0]] != 2, rows))
+        print('filtered rows: {}'.format(len(rows_without_class_2)))
         print('generating new data')
         # apparently saving these locally is faster
         augment = aug.augment
-        append = new_rows.append
-        for i in range(1000):
+        for i in range(10):
             print(i)
             row = random.choice(rows_without_class_2)
+            # Augment the post title
+            row[2] = augment(row[2])
+            # Augment the post body
             row[3] = augment(row[3])
-            append(row)
+            new_rows.append(row)
 
-    with open('data/reddit_submissions.csv', 'a') as f:
+    with open('data/augmented_reddit_submissions.csv', 'a') as f:
         writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC, delimiter=',')
         print('writing new rows')
         writer.writerows(new_rows)
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
 
-augment_data()
+    parser.add_argument('--generate_augmented_data',
+        action='store_true', help='If set, then trains network')
+    parser.add_argument('--clear_old_augmented_data',
+        action='store_true', help='If set, then trains network')
+    parser.add_argument('--num_new_class_0',
+        type=int, default=1000, help='Base learning rate (alpha)')
+    parser.add_argument('--num_new_class_1',
+        type=int, default=1000, help='Base learning rate (alpha)')
+
+    args = parser.parse_args()
+
+    augment_data(
+        num_new_class_0=args.num_new_class_0,
+        num_new_class_1=args.num_new_class_1,
+        clear_old_augmented_data=args.clear_old_augmented_data)
+
