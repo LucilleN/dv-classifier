@@ -12,15 +12,15 @@ import nlpaug.flow as nafc
 # Everything else will be class 2, general/unrelated
 
 CLASSES = {
-    'relationship_advice': 2, # 5874 samples
-    'relationships': 2, # 8201 samples
-    'casualconversation': 2, # 7286 samples
-    'advice': 2, # 5913 samples
-    'anxiety': 2, # 4183 samples
-    'anger': 2, # 837 samples
-    'abuseinterrupted': 1, # 1653 samples
-    'domesticviolence': 0, # 749 samples
-    'survivorsofabuse': 0 # 512 samples
+    'relationship_advice': 2,  # 5874 samples
+    'relationships': 2,  # 8201 samples
+    'casualconversation': 2,  # 7286 samples
+    'advice': 2,  # 5913 samples
+    'anxiety': 2,  # 4183 samples
+    'anger': 2,  # 837 samples
+    'abuseinterrupted': 1,  # 1653 samples
+    'domesticviolence': 0,  # 749 samples
+    'survivorsofabuse': 0  # 512 samples
 }
 
 LABEL_TO_IX = {
@@ -35,6 +35,7 @@ IX_TO_LABEL = {
     2: 'general'
 }
 
+
 def load_data(file_path):
     """
     Loads text and labels from dataset stored in file_path, a CSV.
@@ -44,6 +45,7 @@ def load_data(file_path):
 
     with open(file_path) as f:
         reader = csv.reader(f)
+
         # Skip the first row that just has column names
         rows = list(reader)[1:]
         for row in rows:
@@ -61,23 +63,32 @@ def load_data(file_path):
 
 def augment_data():
     # aug = naw.WordEmbsAug(
-        # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
-        # action="substitute")
+    # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
+    # action="substitute")
     # aug = naw.SynonymAug(aug_src='wordnet')
     aug = naw.ContextualWordEmbsAug(
-        model_path='bert-base-uncased', action="insert")
+        model_path='bert-base-uncased', action="insert", device='cpu')
 
-    with open('data/reddit_submissions.csv') as f:
+    new_rows = []
+    with open('data/reddit_submissions.csv') as f:  # open with append and read permission
         reader = csv.reader(f)
         # Skip the first row that just has column names
         rows = list(reader)[1:]
-        for i in range(10):
-            text = random.choice(rows)[3]
-            print(text)
-            print('========================== END OF ORIGINAL TEXT =================================')
-            augamented = aug.augment(text)
-            print(augamented)
-            print('========================== END OF AUGMENTED TEXT =================================')
+        rows_without_class_2 = list(filter(lambda r: CLASSES[r[0]] != 2, rows))
+        print('generating new data')
+        # apparently saving these locally is faster
+        augment = aug.augment
+        append = new_rows.append
+        for i in range(1000):
+            print(i)
+            row = random.choice(rows_without_class_2)
+            row[3] = augment(row[3])
+            append(row)
+
+    with open('data/reddit_submissions.csv', 'a') as f:
+        writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC, delimiter=',')
+        print('writing new rows')
+        writer.writerows(new_rows)
 
 
 augment_data()

@@ -146,3 +146,4 @@ tags
 
 node_modules
 /GoogleNews-vectors-negative300.bin
+/bert-base-uncased/
