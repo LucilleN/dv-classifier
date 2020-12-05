@@ -63,7 +63,21 @@ def load_data(file_path, include_og=True, include_aug=False, fraction_class_2_to
     return (np.array(posts), np.array(labels))
 
 
-def augment_data(num_new_class_0, num_new_class_1, clear_old_augmented_data=False):
+def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
+    # apparently faster to store these locally, be careful with maintenance though
+    augment = aug.augment
+    append = new_rows.append
+    for i in range(num_new_rows):
+        if i % 100 == 0: print(i)
+        row = random.choice(seed_rows)
+        # Augment the post title
+        row[2] = augment(row[2])
+        # Augment the post body
+        row[3] = augment(row[3])
+        append(row)
+
+
+def augment_data(num_new_class_0=10, num_new_class_1=10, clear_old_augmented_data=False):
     # aug = naw.WordEmbsAug(
     # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
     # action="substitute")
@@ -72,41 +86,36 @@ def augment_data(num_new_class_0, num_new_class_1, clear_old_augmented_data=Fals
         model_path='bert-base-uncased', action="insert", device='cpu')
 
     new_rows = []
-    with open('data/reddit_submissions.csv') as f:  # open with read permission
+    with open('data/reddit_submissions.csv') as f:
         reader = csv.reader(f)
         # Skip the first row that just has column names
         rows = list(reader)[1:]
         print('unfiltered rows: {}'.format(len(rows)))
-        rows_without_class_2 = list(filter(lambda r: CLASSES[r[0]] != 2, rows))
-        print('filtered rows: {}'.format(len(rows_without_class_2)))
-        print('generating new data')
-        # apparently saving these locally is faster
-        augment = aug.augment
-        for i in range(10):
-            print(i)
-            row = random.choice(rows_without_class_2)
-            # Augment the post title
-            row[2] = augment(row[2])
-            # Augment the post body
-            row[3] = augment(row[3])
-            new_rows.append(row)
+        seed_rows_with_class_0 = list(filter(lambda r: CLASSES[r[0]] == 0, rows))
+        seed_rows_with_class_1 = list(filter(lambda r: CLASSES[r[0]] == 1, rows))
+        print('filtered rows: {}'.format(len(seed_rows_with_class_0) + len(seed_rows_with_class_1)))
+        print('generating new data with class 0')
+        create_new_rows(seed_rows_with_class_0, num_new_class_0, new_rows, aug)
+        print('generating new data with class 1')
+        create_new_rows(seed_rows_with_class_1, num_new_class_1, new_rows, aug)
 
     with open('data/augmented_reddit_submissions.csv', 'a') as f:
         writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC, delimiter=',')
         print('writing new rows')
         writer.writerows(new_rows)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--generate_augmented_data',
-        action='store_true', help='If set, then trains network')
+                        action='store_true', help='If set, then trains network')
     parser.add_argument('--clear_old_augmented_data',
-        action='store_true', help='If set, then trains network')
+                        action='store_true', help='If set, then trains network')
     parser.add_argument('--num_new_class_0',
-        type=int, default=1000, help='Base learning rate (alpha)')
+                        type=int, default=1000, help='Base learning rate (alpha)')
     parser.add_argument('--num_new_class_1',
-        type=int, default=1000, help='Base learning rate (alpha)')
+                        type=int, default=1000, help='Base learning rate (alpha)')
 
     args = parser.parse_args()
 
@@ -114,4 +123,3 @@ if __name__ == '__main__':
         num_new_class_0=args.num_new_class_0,
         num_new_class_1=args.num_new_class_1,
         clear_old_augmented_data=args.clear_old_augmented_data)
-
