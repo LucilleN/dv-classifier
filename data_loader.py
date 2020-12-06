@@ -26,9 +26,9 @@ CLASSES = {
 }
 
 CLASS_COUNTS = {
-    0: 32294,
+    2: 32294,
     1: 1653,
-    2: 1261
+    0: 1261
 }
 
 LABEL_TO_IX = {
@@ -61,8 +61,6 @@ def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=Fal
 
     for file_path in sources:
         
-        class_2_counter = 0
-        
         with open(file_path) as f:
             reader = csv.reader(f)
 
@@ -72,17 +70,29 @@ def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=Fal
                 # print("\n" + str(row))
                 subreddit_name = row[0]
                 label = CLASSES[subreddit_name]
-                if label == 2:
-                    class_2_counter += 1
-                    if class_2_counter > class_2_max:
-                        continue
                 post_title = row[2]
                 post_text = row[3]
                 post_title_and_text = post_title + " " + post_text
                 labels.append(label)
                 posts.append(post_title_and_text)
 
-    return (np.array(posts), np.array(labels))
+    posts = np.array(posts)
+    labels = np.array(labels)
+
+    class_2_indexes = np.where(labels == 2)[0]
+    everything_else = np.where(labels != 2)[0]
+    class_2_subset_indexes = np.random.choice(class_2_indexes, size=class_2_max)
+    
+    class_2_posts = posts[class_2_subset_indexes]
+    class_2_labels = labels[class_2_subset_indexes]
+
+    all_other_posts = posts[everything_else]
+    all_other_labels = labels[everything_else]
+
+    posts = np.concatenate([all_other_posts, class_2_posts])
+    labels = np.concatenate([class_2_labels, all_other_labels])
+
+    return (posts, labels)
 
 
 def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
@@ -141,7 +151,46 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    augment_data(
-        num_new_class_0=args.num_new_class_0,
-        num_new_class_1=args.num_new_class_1,
-        clear_old_augmented_data=args.clear_old_augmented_data)
+    if args.generate_augmented_data:
+        augment_data(
+            num_new_class_0=args.num_new_class_0,
+            num_new_class_1=args.num_new_class_1,
+            clear_old_augmented_data=args.clear_old_augmented_data)
+
+    else: 
+        "Testing data loader"
+        posts, labels = load_data(og_file_path='data/reddit_submissions.csv')
+        print('just og data:', len(posts), len(labels))
+        class0 = labels[np.where(labels == 0)]
+        print('just og data class 0:', len(class0))
+        class1 = labels[np.where(labels == 1)]
+        print('just og data class 1:', len(class1))
+        class2 = labels[np.where(labels == 2)]
+        print('just og data class 2:', len(class2))
+
+        posts, labels = load_data(
+            og_file_path='data/reddit_submissions.csv', 
+            aug_file_path='data/augmented_reddit_submissions.csv', 
+            include_og=True, 
+            include_aug=True)
+        print('og + aug data:', len(posts), len(labels))
+        class0 = labels[np.where(labels == 0)]
+        print('og + aug data class 0:', len(class0))
+        class1 = labels[np.where(labels == 1)]
+        print('og + aug data class 1:', len(class1))
+        class2 = labels[np.where(labels == 2)]
+        print('og + aug data class 2:', len(class2))
+
+        posts, labels = load_data(
+            og_file_path='data/reddit_submissions.csv', 
+            aug_file_path='data/augmented_reddit_submissions.csv', 
+            include_og=True, 
+            include_aug=True,
+            fraction_class_2_to_load=0.1)
+        print('og + aug data with less 2:', len(posts), len(labels))
+        class0 = labels[np.where(labels == 0)]
+        print('og + aug data class 0 with less 2:', len(class0))
+        class1 = labels[np.where(labels == 1)]
+        print('og + aug data class 1 with less 2:', len(class1))
+        class2 = labels[np.where(labels == 2)]
+        print('og + aug data class 2 with less 2:', len(class2))
