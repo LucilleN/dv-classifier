@@ -6,7 +6,8 @@ import nlpaug.augmenter.char as nac
 import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.sentence as nas
 import nlpaug.flow as nafc
-
+import nltk
+nltk.download('wordnet')
 import argparse
 
 # The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
@@ -90,7 +91,7 @@ def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
     augment = aug.augment
     append = new_rows.append
     for i in range(num_new_rows):
-        if i % 100 == 0: print(i)
+        print(i)
         row = random.choice(seed_rows)
         # Augment the post title
         row[2] = augment(row[2])
@@ -99,13 +100,13 @@ def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
         append(row)
 
 
-def augment_data(num_new_class_0=10, num_new_class_1=10, clear_old_augmented_data=False):
+def augment_data(num_new_class_0=1, num_new_class_1=1, clear_old_augmented_data=False):
     # aug = naw.WordEmbsAug(
     # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
     # action="substitute")
-    # aug = naw.SynonymAug(aug_src='wordnet')
-    aug = naw.ContextualWordEmbsAug(
-        model_path='bert-base-uncased', action="insert", device='cpu')
+    aug = naw.SynonymAug(aug_src='wordnet')
+    # aug = naw.ContextualWordEmbsAug(
+    #     model_path='bert-base-uncased', action="insert", device='cpu')
 
     new_rows = []
     with open('data/reddit_submissions.csv') as f:
