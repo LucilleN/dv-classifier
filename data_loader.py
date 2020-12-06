@@ -25,6 +25,12 @@ CLASSES = {
     'survivorsofabuse': 0  # 512 samples
 }
 
+CLASS_COUNTS = {
+    0: 32294,
+    1: 1653,
+    2: 1261
+}
+
 LABEL_TO_IX = {
     'critical': 0,
     'noncritical': 1,
@@ -38,27 +44,43 @@ IX_TO_LABEL = {
 }
 
 
-def load_data(file_path, include_og=True, include_aug=False, fraction_class_2_to_load=1.0):
+def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=False, fraction_class_2_to_load=1.0):
     """
     Loads text and labels from dataset stored in file_path, a CSV.
     """
     posts = []
     labels = []
 
-    with open(file_path) as f:
-        reader = csv.reader(f)
+    sources = []
+    if include_og:
+        sources.append(og_file_path)
+    if include_aug:
+        sources.append(aug_file_path)
 
-        # Skip the first row that just has column names
-        rows = list(reader)[1:]
-        for row in rows:
-            # print("\n" + str(row))
-            subreddit_name = row[0]
-            label = CLASSES[subreddit_name]
-            post_title = row[2]
-            post_text = row[3]
-            post_title_and_text = post_title + " " + post_text
-            labels.append(label)
-            posts.append(post_title_and_text)
+    class_2_max = int(fraction_class_2_to_load * CLASS_COUNTS[2])
+
+    for file_path in sources:
+        
+        class_2_counter = 0
+        
+        with open(file_path) as f:
+            reader = csv.reader(f)
+
+            # Skip the first row that just has column names
+            rows = list(reader)[1:]
+            for row in rows:
+                # print("\n" + str(row))
+                subreddit_name = row[0]
+                label = CLASSES[subreddit_name]
+                if label == 2:
+                    class_2_counter += 1
+                    if class_2_counter > class_2_max:
+                        continue
+                post_title = row[2]
+                post_text = row[3]
+                post_title_and_text = post_title + " " + post_text
+                labels.append(label)
+                posts.append(post_title_and_text)
 
     return (np.array(posts), np.array(labels))
 
