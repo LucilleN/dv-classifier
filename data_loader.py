@@ -1,9 +1,16 @@
 import csv
 import numpy as np
+import random
+
+import nlpaug.augmenter.char as nac
+import nlpaug.augmenter.word as naw
+import nlpaug.augmenter.sentence as nas
+import nlpaug.flow as nafc
 
 # The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
 # The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to articles, general statements about abuse, etc.
 # Everything else will be class 2, general/unrelated
+
 CLASSES = {
     'relationship_advice': 2, # 5874 samples
     'relationships': 2, # 8201 samples
@@ -50,3 +57,27 @@ def load_data(file_path):
             posts.append(post_title_and_text)
 
     return (np.array(posts), np.array(labels))
+
+
+def augment_data():
+    # aug = naw.WordEmbsAug(
+        # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
+        # action="substitute")
+    # aug = naw.SynonymAug(aug_src='wordnet')
+    aug = naw.ContextualWordEmbsAug(
+        model_path='bert-base-uncased', action="insert")
+
+    with open('data/reddit_submissions.csv') as f:
+        reader = csv.reader(f)
+        # Skip the first row that just has column names
+        rows = list(reader)[1:]
+        for i in range(10):
+            text = random.choice(rows)[3]
+            print(text)
+            print('========================== END OF ORIGINAL TEXT =================================')
+            augamented = aug.augment(text)
+            print(augamented)
+            print('========================== END OF AUGMENTED TEXT =================================')
+
+
+augment_data()

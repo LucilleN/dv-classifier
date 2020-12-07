@@ -145,3 +145,4 @@ tags
 *.DS_Store
 
 node_modules
+/GoogleNews-vectors-negative300.bin
