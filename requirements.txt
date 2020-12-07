@@ -36,3 +36,4 @@ transformers==3.5.1
 twython==3.8.2
 typing-extensions==3.7.4.3
 urllib3==1.26.2
+transformers=3.5.1

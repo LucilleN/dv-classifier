@@ -6,9 +6,11 @@ import nlpaug.augmenter.char as nac
 import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.sentence as nas
 import nlpaug.flow as nafc
+import argparse
+
+# only need to run once for synonym generator
 import nltk
 nltk.download('wordnet')
-import argparse
 
 # The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
 # The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to articles, general statements about abuse, etc.
@@ -111,12 +113,14 @@ def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
 
 
 def augment_data(num_new_class_0=1, num_new_class_1=1, clear_old_augmented_data=False):
+    # different models that can be used for augmenting:
     # aug = naw.WordEmbsAug(
     # model_type='word2vec', model_path='./GoogleNews-vectors-negative300.bin',
     # action="substitute")
-    aug = naw.SynonymAug(aug_src='wordnet')
     # aug = naw.ContextualWordEmbsAug(
     #     model_path='bert-base-uncased', action="insert", device='cpu')
+    
+    aug = naw.SynonymAug(aug_src='wordnet')
 
     new_rows = []
     with open('data/reddit_submissions.csv') as f:
