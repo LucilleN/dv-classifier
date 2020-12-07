@@ -145,4 +145,7 @@ tags
 *.DS_Store
 
 node_modules
+
+# libraries
 /GoogleNews-vectors-negative300.bin
+/bert-base-uncased/
