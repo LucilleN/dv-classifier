@@ -55,10 +55,10 @@ if __name__ == "__main__":
     """
     posts, labels = load_data(
         og_file_path='data/reddit_submissions.csv', 
-        aug_file_path='data/augmented_reddit_submissions.csv', 
+        aug_file_path='data/synonym_augmented_reddit_submissions.csv', 
         include_og=True, 
         include_aug=True,
-        fraction_class_2_to_load=0.1)
+        combine_classes_01=True)
 
     posts_train, posts_test, train_labels, test_labels = train_test_split(
         posts, labels, test_size=0.2)
