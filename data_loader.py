@@ -151,13 +151,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--generate_augmented_data',
-                        action='store_true', help='If set, then trains network')
+                        action='store_true', help='If set, then generates augmented data into data/augmented_reddit_submissions.csv when the script is run')
     parser.add_argument('--clear_old_augmented_data',
-                        action='store_true', help='If set, then trains network')
+                        action='store_true', help='If set, then overwrites the old augmented data with new augmented data')
     parser.add_argument('--num_new_class_0',
-                        type=int, default=1000, help='Base learning rate (alpha)')
+                        type=int, default=1000, help='The number of samples of class 0 to generate')
     parser.add_argument('--num_new_class_1',
-                        type=int, default=1000, help='Base learning rate (alpha)')
+                        type=int, default=1000, help='The number of samples of class 1 to generate')
 
     args = parser.parse_args()
 
@@ -168,7 +168,8 @@ if __name__ == '__main__':
             clear_old_augmented_data=args.clear_old_augmented_data)
 
     else: 
-        "Testing data loader"
+        print("Testing data loader")
+
         posts, labels = load_data(og_file_path='data/reddit_submissions.csv')
         print('just og data:', len(posts), len(labels))
         class0 = labels[np.where(labels == 0)]
