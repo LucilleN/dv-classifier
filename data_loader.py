@@ -47,7 +47,7 @@ IX_TO_LABEL = {
 }
 
 
-def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=False, fraction_class_2_to_load=1.0):
+def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=False, fraction_class_2_to_load=1.0, combine_classes_01=False):
     """
     Loads text and labels from dataset stored in file_path, a CSV.
     """
@@ -73,6 +73,10 @@ def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=Fal
                 # print("\n" + str(row))
                 subreddit_name = row[0]
                 label = CLASSES[subreddit_name]
+                if combine_classes_01:
+                    # If we're combining the critical and noncritical classes, than labels 0 or 1 will be 
+                    # collapsed into label 0, and label 2 will become label 1
+                    label = 0 if label < 2 else 1
                 post_title = row[2]
                 post_text = row[3]
                 post_title_and_text = post_title + " " + post_text
@@ -82,18 +86,19 @@ def load_data(og_file_path, aug_file_path=None, include_og=True, include_aug=Fal
     posts = np.array(posts)
     labels = np.array(labels)
 
-    class_2_indexes = np.where(labels == 2)[0]
-    everything_else = np.where(labels != 2)[0]
-    class_2_subset_indexes = np.random.choice(class_2_indexes, size=class_2_max)
-    
-    class_2_posts = posts[class_2_subset_indexes]
-    class_2_labels = labels[class_2_subset_indexes]
+    if fraction_class_2_to_load < 1.0:
+        class_2_indexes = np.where(labels == 2)[0]
+        everything_else = np.where(labels != 2)[0]
+        class_2_subset_indexes = np.random.choice(class_2_indexes, size=class_2_max)
+        
+        class_2_posts = posts[class_2_subset_indexes]
+        class_2_labels = labels[class_2_subset_indexes]
 
-    all_other_posts = posts[everything_else]
-    all_other_labels = labels[everything_else]
+        all_other_posts = posts[everything_else]
+        all_other_labels = labels[everything_else]
 
-    posts = np.concatenate([all_other_posts, class_2_posts])
-    labels = np.concatenate([class_2_labels, all_other_labels])
+        posts = np.concatenate([all_other_posts, class_2_posts])
+        labels = np.concatenate([class_2_labels, all_other_labels])
 
     return (posts, labels)
 
