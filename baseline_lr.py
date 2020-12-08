@@ -2,11 +2,24 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
+import argparse
 
 from data_loader import load_data
 
 if __name__ == "__main__":
-    posts, labels = load_data("data/reddit_submissions.csv")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--use_og_data',
+                        action='store_true', help='If set, then includes original data in training and testing sets')
+    parser.add_argument('--use_aug_data',
+                        action='store_true', help='If set, then includes augmented data in training and testing sets')
+    args = parser.parse_args()
+
+    posts, labels = load_data(
+        og_file_path="data/reddit_submissions.csv", 
+        aug_file_path="data/synonym_augmented_reddit_submissions.csv", 
+        include_og=args.use_og_data, 
+        include_aug=args.use_aug_data)
+
     posts_train, posts_test, labels_train, labels_test = train_test_split(posts, labels, test_size=0.2)
     
     vectorizer = CountVectorizer(ngram_range=(1, 1))
