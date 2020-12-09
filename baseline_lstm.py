@@ -57,8 +57,7 @@ if __name__ == "__main__":
         og_file_path='data/reddit_submissions.csv', 
         aug_file_path='data/synonym_augmented_reddit_submissions.csv', 
         include_og=True, 
-        include_aug=True,
-        combine_classes_01=True)
+        include_aug=True)
 
     posts_train, posts_test, train_labels, test_labels = train_test_split(
         posts, labels, test_size=0.2)
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     bs = 50
 
     model = LSTM(vocab_size=vocab_size,
-                 hidden_size=hidden_size, output_size=output_size, num_layers=num_layers, bidirectional=True)
+                 hidden_size=hidden_size, output_size=output_size, num_layers=num_layers, bidirectional=False)
     model = model.to(device)
     loss_func = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
