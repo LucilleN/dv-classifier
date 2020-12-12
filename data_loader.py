@@ -9,12 +9,15 @@ import nlpaug.flow as nafc
 import argparse
 
 # only need to run once for synonym generator
-import nltk
-nltk.download('wordnet')
+# note: don't need this unless we augment again and it throws errors
+# import nltk
+# nltk.download('wordnet')
 
-# The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
-# The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to articles, general statements about abuse, etc.
-# Everything else will be class 2, general/unrelated
+'''
+The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, calls for help, requests for advice
+The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to articles, general statements about abuse, etc.
+Everything else will be class 2, general/unrelated
+'''
 
 CLASSES = {
     'relationship_advice': 2,  # 5874 samples
