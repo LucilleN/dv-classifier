@@ -1,5 +1,57 @@
 # NLP Final Project: Identifying Domestic Violence in Social Media Posts
-[@Lucille Njoo](https://github.com/LucilleN), [@Manny Barreto](https://github.com/mannybarreto), [@Cooper LaRhette](https://github.com/coopslarhette)
+**Authors:** [@Lucille Njoo](https://github.com/LucilleN), [@Manny Barreto](https://github.com/mannybarreto), [@Cooper LaRhette](https://github.com/coopslarhette)
+
+# How to Start
+
+#### Installation 
+
+Once you have cloned the repo and you are inside your local copy of it, create a Python virtual environment in the top level directory of this repo:
+```sh
+python3 -m venv env
+```
+
+Then activate the environment:
+```sh
+. env/bin/activate
+```
+
+Then install all the necessary requirements:
+```sh
+pip3 install -r requirements.txt
+```
+
+#### Running the models
+
+To run the four models, simply execute each file with `python3`. By default, this will only test/evaluate the models and will not train them unless otherwise specified by command line arguments:
+```sh
+python3 baseline_lr.py
+python3 lstm.py
+python3 rnn.py
+python3 gru.py
+```
+
+For each file, you can add the following optional command line arguments if you want to retrain them or continue training them from their current state. When they are finished training, they will evaluate on the test set and print out the classification report. Warning: some of these models can take many hours to train.
+
+| Command Line Option           | Explanation |
+| ----------------------------- | ----------- |
+| `--train_from_current` | If set, continues training the specified model from its current state. All other flags are ignored and the existing default data-loading hyperparameters are used. |
+| `--train_from_scratch` | If set, trains the specified model from scratch. Any or all of the following flags can be set; any that are not set simply default to the existing default hyperparameters. |
+| `--use_og_data_only` | If set, trains the model on only the original data. |
+| `--use_og_and_aug_data` | If set, trains the model on the combined original + augmented dataset. |
+| `--use_3_classes` | If set, trains with all 3 classes: `0` for `critical`, `1` for `noncritical`, and `2` for `general/unrelated`. |
+| `--use_2_classes` | If set, trains with only 2 classes: `0` for `DV-related` (combining critical and noncritical) and `1` for `general/unrelated`. |
+| `--n_epochs` | Takes in an integer; specifies the number of epochs to train for. Defaults to 10 epochs for all models. |
+| `--batch_size` | Takes in an integer; specifies the number of samples to use in each batch. Defaults to 50 samples for all models. |
+| `--learning_rate` | Takes in a float; specifies the learning rate to train with. |
+
+#### When you're done
+
+When you are finished, you can exit the Python virtual environment with:
+```sh
+deactivate
+```
+
+# Project Overview
 
 ## I. Objective / Hypothesis 
 The objective of our research project is to implement several variations of a domestic violence text classifier based on the architectures used by Subramani et al. in [1], but using a different, larger dataset of Reddit posts taken from Schrading [2] rather than their original dataset of Facebook posts. By applying Subramani's work to a new dataset, we hope to be able to compare the performance of different neural network architectures and juxtapose our models' results with the original paper's to draw conclusions about the differences in the two datasets and their efficacies. 
