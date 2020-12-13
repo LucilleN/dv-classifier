@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
+from sklearn.metrics import classification_report
+from tqdm import trange
 
 
+    
 def build_vocab(posts):
     """
     Given the training set of posts, constructs the vocabulary dictionary, `tok_to_ix`, that
@@ -52,3 +55,35 @@ def make_minibatch(indices, data, label):
     minibatch_label = torch.stack(minibatch_label, dim=0)
 
     return minibatch_data, minibatch_label
+
+def eval_on_test_set(model, test_data, test_labels, bs):
+    """ 
+    Evaluate the model
+    """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    with torch.no_grad():
+        model.eval()
+        predicted_labels = []
+
+        # cycle through test set in batches
+        batches = trange(0, len(test_data) - bs, bs,
+                         desc='evaluating on test set', leave=False)
+        for i in batches:
+            # extract minibatch
+            indices = torch.arange(i, i + bs)
+            minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+            minibatch_data = minibatch_data.to(device)
+
+            # make and score predictions
+            scores = model(minibatch_data)
+            predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        # evaluate remaining samples
+        indices = torch.arange(len(predicted_labels), len(test_labels))
+        minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+        minibatch_data = minibatch_data.to(device)
+
+        scores = model(minibatch_data)
+        predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        print(classification_report(y_true=test_labels, y_pred=predicted_labels))

@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from tqdm import trange
 
 from data_loader import load_data
-from utils import build_vocab, make_minibatch, strings_to_tensors
+from utils import (build_vocab, eval_on_test_set, make_minibatch,
+                   strings_to_tensors)
 
 
 class LSTM(nn.Module):
@@ -54,9 +54,9 @@ if __name__ == "__main__":
     Load the training, validation, and test data
     """
     posts, labels = load_data(
-        og_file_path='data/reddit_submissions.csv', 
-        aug_file_path='data/synonym_augmented_reddit_submissions.csv', 
-        include_og=True, 
+        og_file_path='data/reddit_submissions.csv',
+        aug_file_path='data/synonym_augmented_reddit_submissions.csv',
+        include_og=True,
         include_aug=True)
 
     posts_train, posts_test, train_labels, test_labels = train_test_split(
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         batches = trange(0, num_samples - bs, bs, leave=False)
         for count in batches:
             # Extract minibatches and send to GPU
-            indices = shuffled_indices[count : count + bs]
+            indices = shuffled_indices[count: count + bs]
             minibatch_data, minibatch_label = make_minibatch(
                 indices, train_data, train_labels)
             minibatch_data, minibatch_label = minibatch_data.to(
@@ -132,36 +132,7 @@ if __name__ == "__main__":
         epochs.set_description(
             f'Epoch {epoch}/{n_epochs} | Loss: {running_loss/num_batches}')
 
-    """ 
-    Evaluate the model
-    """
-    with torch.no_grad():
-        model.eval()
-        predicted_labels = []
-
-        # cycle through test set in batches
-        batches = trange(0, len(test_data) - bs, bs,
-                         desc='evaluating on test set', leave=False)
-        for i in batches:
-            # extract minibatch
-            indices = torch.arange(i, i + bs)
-            minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
-            minibatch_data = minibatch_data.to(device)
-
-            # make and score predictions
-            scores = model(minibatch_data)
-            predicted_labels.extend(scores.argmax(dim=1).tolist())
-
-        # evaluate remaining samples
-        indices = torch.arange(len(predicted_labels), len(test_labels))
-        minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
-        minibatch_data = minibatch_data.to(device)
-
-        scores = model(minibatch_data)
-        predicted_labels.extend(scores.argmax(dim=1).tolist())
-
-        print(classification_report(y_true=test_labels, y_pred=predicted_labels))
-
+    eval_on_test_set(model, test_data, test_labels, bs)
 
 
 """
