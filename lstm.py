@@ -2,12 +2,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.model_selection import train_test_split
 from tqdm import trange
 
 from data_loader import load_data
 from utils import (build_vocab, eval_on_test_set, make_minibatch,
-                   strings_to_tensors)
+                   strings_to_tensors, parser)
+
+PATH = 'models/lstm.pt'
 
 
 class LSTM(nn.Module):
@@ -45,22 +46,22 @@ class LSTM(nn.Module):
         return self.sigmoid(scores)
 
 
-if __name__ == "__main__":
-
+def train_model(use_og_data_only, n_epochs, bs, learning_rate):
     # If there's an available GPU, lets train on it
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     """
-    Load the training, validation, and test data
+    Load the training data
     """
-    posts, labels = load_data(
-        og_file_path='data/reddit_submissions.csv',
-        aug_file_path='data/synonym_augmented_reddit_submissions.csv',
+    posts_train, labels_train = load_data(
+        og_file_path='data/train_reddit_submissions.csv',
+        aug_file_path='data/train_synonym_augmented_reddit_submissions.csv',
         include_og=True,
-        include_aug=True)
+        include_aug=not use_og_data_only)
 
-    posts_train, posts_test, train_labels, test_labels = train_test_split(
-        posts, labels, test_size=0.2)
+    # need this since we're no longer using train_test_split
+    np.random.shuffle(posts_train)
+    np.random.shuffle(labels_train)
 
     tok_to_ix = build_vocab(posts_train)
 
@@ -69,21 +70,16 @@ if __name__ == "__main__":
     not have to convert them again at every epoch
     """
     train_data = strings_to_tensors(posts_train, tok_to_ix)
-    test_data = strings_to_tensors(posts_test, tok_to_ix)
 
-    train_labels = torch.LongTensor(train_labels)
-    test_labels = torch.LongTensor(test_labels)
+    labels_train = torch.LongTensor(labels_train)
 
     """
     Specify model's hyperparameters and architecture
     """
     hidden_size = 25
-    learning_rate = 0.01
     num_layers = 2
     vocab_size = len(tok_to_ix)
-    output_size = len(np.unique(train_labels))
-    n_epochs = 10
-    bs = 50
+    output_size = len(np.unique(labels_train))
 
     model = LSTM(vocab_size=vocab_size,
                  hidden_size=hidden_size, output_size=output_size, num_layers=num_layers, bidirectional=False)
@@ -111,7 +107,7 @@ if __name__ == "__main__":
             # Extract minibatches and send to GPU
             indices = shuffled_indices[count: count + bs]
             minibatch_data, minibatch_label = make_minibatch(
-                indices, train_data, train_labels)
+                indices, train_data, labels_train)
             minibatch_data, minibatch_label = minibatch_data.to(
                 device), minibatch_label.to(device)
 
@@ -132,8 +128,25 @@ if __name__ == "__main__":
         epochs.set_description(
             f'Epoch {epoch}/{n_epochs} | Loss: {running_loss/num_batches}')
 
-    eval_on_test_set(model, test_data, test_labels, bs)
+    torch.save(model, PATH)
+    return model
 
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+
+    use_og_data_only = args.use_og_data_only
+    bs = args.bs
+    if args.retrain:
+        n_epochs = args.n_epochs
+        learning_rate = args.lr
+
+        model = train_model(
+            use_og_data_only, n_epochs, bs, learning_rate)
+    else:
+        model = torch.load(PATH)
+
+    eval_on_test_set(model=model, use_og_data_only=use_og_data_only, bs=bs)
 
 """
 Output:

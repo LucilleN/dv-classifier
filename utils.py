@@ -2,9 +2,20 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import classification_report
 from tqdm import trange
+from argparse import ArgumentParser
+
+from data_loader import load_data
+
+parser = ArgumentParser(description='Neural DV-Classifier')
+
+parser.add_argument('--train_from_scratch', action='store_true', dest='retrain', default=False)
+parser.add_argument('--use_og_data_only', action='store_true', default=False)
+parser.add_argument('--use_2_classes', action='store_true', default=False)
+parser.add_argument('--n_epochs', action="store", dest="n_epochs", type=int, default=50)
+parser.add_argument('--batch_size', action="store", dest="bs", type=int, default=10)
+parser.add_argument('--learning_rate', action="store", dest="lr", type=float, default=0.01)
 
 
-    
 def build_vocab(posts):
     """
     Given the training set of posts, constructs the vocabulary dictionary, `tok_to_ix`, that
@@ -56,11 +67,19 @@ def make_minibatch(indices, data, label):
 
     return minibatch_data, minibatch_label
 
-def eval_on_test_set(model, test_data, test_labels, bs):
+
+def eval_on_test_set(model, use_og_data_only=True, bs=50):
     """ 
     Evaluate the model
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    test_data, test_labels = load_data(
+        og_file_path='data/test_reddit_submissions.csv',
+        aug_file_path='data/test_synonym_augmented_reddit_submissions.csv',
+        include_og=True,
+        include_aug=not use_og_data_only
+    )
+
     with torch.no_grad():
         model.eval()
         predicted_labels = []
