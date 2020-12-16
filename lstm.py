@@ -59,10 +59,6 @@ def train_model(use_og_data_only, n_epochs, bs, learning_rate):
         include_og=True,
         include_aug=not use_og_data_only)
 
-    # need this since we're no longer using train_test_split
-    np.random.shuffle(posts_train)
-    np.random.shuffle(labels_train)
-
     tok_to_ix = build_vocab(posts_train)
 
     """
