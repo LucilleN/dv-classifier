@@ -1,5 +1,19 @@
 import torch
 import torch.nn as nn
+from sklearn.metrics import classification_report
+from tqdm import trange
+from argparse import ArgumentParser
+
+from data_loader import load_data
+
+parser = ArgumentParser(description='Neural DV-Classifier')
+
+parser.add_argument('--train_from_scratch', action='store_true', dest='retrain', default=False)
+parser.add_argument('--use_og_data_only', action='store_true', default=False)
+parser.add_argument('--use_2_classes', action='store_true', default=False)
+parser.add_argument('--n_epochs', action="store", dest="n_epochs", type=int, default=50)
+parser.add_argument('--batch_size', action="store", dest="bs", type=int, default=10)
+parser.add_argument('--learning_rate', action="store", dest="lr", type=float, default=0.01)
 
 
 def build_vocab(posts):
@@ -52,3 +66,43 @@ def make_minibatch(indices, data, label):
     minibatch_label = torch.stack(minibatch_label, dim=0)
 
     return minibatch_data, minibatch_label
+
+
+def eval_on_test_set(model, use_og_data_only=True, bs=50):
+    """ 
+    Evaluate the model
+    """
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    test_data, test_labels = load_data(
+        og_file_path='data/test_reddit_submissions.csv',
+        aug_file_path='data/test_synonym_augmented_reddit_submissions.csv',
+        include_og=True,
+        include_aug=not use_og_data_only
+    )
+
+    with torch.no_grad():
+        model.eval()
+        predicted_labels = []
+
+        # cycle through test set in batches
+        batches = trange(0, len(test_data) - bs, bs,
+                         desc='evaluating on test set', leave=False)
+        for i in batches:
+            # extract minibatch
+            indices = torch.arange(i, i + bs)
+            minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+            minibatch_data = minibatch_data.to(device)
+
+            # make and score predictions
+            scores = model(minibatch_data)
+            predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        # evaluate remaining samples
+        indices = torch.arange(len(predicted_labels), len(test_labels))
+        minibatch_data, _ = make_minibatch(indices, test_data, test_labels)
+        minibatch_data = minibatch_data.to(device)
+
+        scores = model(minibatch_data)
+        predicted_labels.extend(scores.argmax(dim=1).tolist())
+
+        print(classification_report(y_true=test_labels, y_pred=predicted_labels))
