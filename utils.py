@@ -102,8 +102,7 @@ def load_data_tensors(use_og_data_only):
     vocabulary
     """
     posts_train, labels_train = load_data(
-        # og_file_path='data/train_reddit_submissions.csv',
-        og_file_path='data/train_reddit_submissions_abridged.csv',
+        og_file_path='data/train_reddit_submissions.csv',
         aug_file_path='data/train_synonym_augmented_reddit_submissions.csv',
         include_og=True,
         include_aug=not use_og_data_only)
