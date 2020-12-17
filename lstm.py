@@ -5,16 +5,15 @@ import torch.optim as optim
 from tqdm import trange
 
 from data_loader import load_data
-from utils import (train_model, evaluate_model, load_data_tensors, 
-                   parse_command_line_args)
+from utils import train_model, evaluate_model, load_data_tensors, parse_command_line_args
 
 SAVE_PATH = 'models/lstm.pt'
 
 
 class LSTM(nn.Module):
     """
-    Implementation of LSTM neural network. Set the init parameter `bidirectional` to True 
-    to use a bidirectional LSTM (a BLSTM).
+    Implementation of Long Short-Term Memory Neural Network. 
+    Set the init parameter `bidirectional` to True to use a bidirectional LSTM (a BLSTM).
     """
 
     def __init__(self, vocab_size, hidden_size, output_size, num_layers, bidirectional=False):
@@ -49,7 +48,7 @@ class LSTM(nn.Module):
 if __name__ == "__main__":
     args = parse_command_line_args()
     
-    # If there's an available GPU, lets train on it
+    # If there's an available GPU, let's use
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     data_train, labels_train, tok_to_ix = load_data_tensors(args.use_og_data_only)
@@ -58,7 +57,6 @@ if __name__ == "__main__":
         """
         Initialize model with the specified hyperparameters and architecture
         """
-        # hidden_size = 25
         hidden_size = args.hidden_size
         num_layers = 2 if args.num_layers < 0 else args.num_layers
         vocab_size = len(tok_to_ix)
