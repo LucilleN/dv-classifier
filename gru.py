@@ -1,3 +1,22 @@
+"""
+This script runs a GRU (Gated Recurrent Unit) neural network 
+and either trains a new model from scratch, or loads a previously trained model,
+then evaluates that model on the testing set. 
+
+Usage:
+- Run this script with `python3 gru.py` to evaluate the trained model on the testing set.
+- To retrain the model, run this script with the --train_from_scratch command line argument,
+  and optionally specify the following hyperparameters:
+    --use_og_data_only: If set, only trains on the original data without any augmented data.
+    --use_2_classes: If set, uses 2 classes rather than 3 (collapses class 0 and 1 into one class)
+    --n_epochs: Integer representing how many epochs to train the model for
+    --batch_size: Integer representing how large each batch should be
+    --learning_rate: Float representing the desired learning rate
+    --hidden_size: Integer representing the desired dimensions of the hidden layer(s) of the NN
+    --num_layers: Integer representing the number of layers 
+
+For further explanations of these flags, consult the README or `utils.py`.
+"""
 import numpy as np
 import torch
 import torch.nn as nn
