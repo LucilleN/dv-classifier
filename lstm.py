@@ -1,3 +1,23 @@
+"""
+This script runs a bidirectional LSTM (Long Short-Term Memory) neural network 
+and either trains a new model from scratch, or loads a previously trained model,
+then evaluates that model on the testing set. 
+
+Usage:
+- Run this script with `python3 lstm.py` to evaluate the trained model on the testing set.
+- To retrain the model, run this script with the --train_from_scratch command line argument,
+  and optionally specify the following hyperparameters:
+    --use_og_data_only: If set, only trains on the original data without any augmented data.
+    --use_2_classes: If set, uses 2 classes rather than 3 (collapses class 0 and 1 into one class)
+    --n_epochs: Integer representing how many epochs to train the model for
+    --batch_size: Integer representing how large each batch should be
+    --learning_rate: Float representing the desired learning rate
+    --hidden_size: Integer representing the desired dimensions of the hidden layer(s) of the NN
+    --num_layers: Integer representing the number of layers 
+
+For further explanations of these flags, consult the README or `utils.py`.
+"""
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -17,6 +37,9 @@ class LSTM(nn.Module):
     """
 
     def __init__(self, vocab_size, hidden_size, output_size, num_layers, bidirectional=False):
+        """
+        Initializes the LSTM with the specified hyperparameters. 
+        """
         super().__init__()
         self.bidirectional = bidirectional
         self.emb = nn.Embedding(vocab_size, hidden_size)
@@ -29,6 +52,10 @@ class LSTM(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_seq):
+        """
+        Executes the forward pass of the neural network. This function is called automatically
+        when we run `model(...)`.
+        """
         embeds = self.emb(input_seq)
         output_seq, (h_last, c_last) = self.rec(embeds)
 
@@ -47,11 +74,12 @@ class LSTM(nn.Module):
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    
-    # If there's an available GPU, let's use
+
+    # If there's an available GPU, let's use it
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    data_train, labels_train, tok_to_ix = load_data_tensors(args.use_og_data_only)
+    data_train, labels_train, tok_to_ix = load_data_tensors(
+        args.use_og_data_only)
 
     if args.retrain:
         """
@@ -63,10 +91,10 @@ if __name__ == "__main__":
         output_size = len(np.unique(labels_train))
 
         model = LSTM(
-            hidden_size=hidden_size, 
-            num_layers=num_layers, 
+            hidden_size=hidden_size,
+            num_layers=num_layers,
             vocab_size=vocab_size,
-            output_size=output_size, 
+            output_size=output_size,
             bidirectional=False)
         model = model.to(device)
         loss_func = nn.CrossEntropyLoss()
@@ -78,7 +106,7 @@ if __name__ == "__main__":
             optimizer=optimizer,
             data_train=data_train,
             labels_train=labels_train,
-            n_epochs=args.n_epochs, 
+            n_epochs=args.n_epochs,
             batch_size=args.batch_size,
             save_path=SAVE_PATH,
             device=device)
@@ -93,8 +121,8 @@ if __name__ == "__main__":
     evaluating the model on the testing set.
     """
     evaluate_model(
-        model=model, 
+        model=model,
         tok_to_ix=tok_to_ix,
-        use_og_data_only=args.use_og_data_only, 
+        use_og_data_only=args.use_og_data_only,
         bs=args.batch_size,
         device=device)

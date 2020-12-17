@@ -1,3 +1,10 @@
+"""
+This script holds all our utility functions for common tasks within our project including:
+- creating and manging minibatches
+- loading and preprocessing data
+- parsing command line arguments
+- training / evaluation neural network models
+"""
 import torch
 import torch.nn as nn
 from sklearn.metrics import classification_report
@@ -6,25 +13,34 @@ from argparse import ArgumentParser
 
 from data_loader import load_data
 
+
 def parse_command_line_args():
     """
     Handles the parsing of command line arguments for all files.
     Returns `args`, the object that contains all the command line arguments,
-    which can be accessed as follows:
+    which can be accessed like this:
         args.retrain
         args.n_epochs
-        args.num_layers 
+        ...etc.
     """
     parser = ArgumentParser(description='Neural DV-Classifier')
 
-    parser.add_argument('--train_from_scratch', action='store_true', dest='retrain', default=False)
-    parser.add_argument('--use_og_data_only', action='store_true', default=False)
-    parser.add_argument('--use_2_classes', action='store_true', default=False)
-    parser.add_argument('--n_epochs', action="store", type=int, default=10)
-    parser.add_argument('--batch_size', action="store", type=int, default=10)
-    parser.add_argument('--learning_rate', action="store", type=float, default=0.01)
-    parser.add_argument('--hidden_size', action="store", type=int, default=25)
-    parser.add_argument('--num_layers', action="store", type=int, default=-1)
+    parser.add_argument('--train_from_scratch', action='store_true', dest='retrain', default=False,
+                        help='If set, trains the specified model from scratch. Any or all of the following flags can be set; any that are not set simply default to the existing default hyperparameters. If unset, will load the model in `models/`')
+    parser.add_argument('--use_og_data_only', action='store_true', default=False,
+                        help='If set, trains the model on only the original data rather than including augmented data.')
+    parser.add_argument('--use_2_classes', action='store_true', default=False,
+                        help='If set, trains with only 2 classes rather than the default 3: `0` for `DV-related` (combining critical and noncritical) and `1` for `general/unrelated`.')
+    parser.add_argument('--n_epochs', action="store", type=int, default=10,
+                        help='Takes in an integer; specifies the number of epochs to train for. Defaults to 10 epochs for all models.')
+    parser.add_argument('--batch_size', action="store", type=int, default=10,
+                        help='Takes in an integer; specifies the number of samples to use in each batch. Defaults to 50 samples for all models.')
+    parser.add_argument('--learning_rate', action="store", type=float, default=0.01,
+                        help='Takes in a float; specifies the learning rate to train with.')
+    parser.add_argument('--hidden_size', action="store", type=int, default=25,
+                        help='Takes in an int; specifies the hidden size dimension for the given NN to train on.')
+    parser.add_argument('--num_layers', action="store", type=int, default=-1,
+                        help='Takes in an int; specifies the number of layers within the specialized NN layer.')
 
     args = parser.parse_args()
     return args
@@ -66,7 +82,7 @@ def reorder_minibatch(minibatch_data, minibatch_label):
     sorted in order from longest to shortest. This is makes it more efficient to
     pad different-length samples, according to 
     https://stackoverflow.com/questions/51030782/why-do-we-pack-the-sequences-in-pytorch
-    
+
     (Taken from Dr. Laurent's batching example)
 
     Returns a tuple of sorted lists: (data, labels)
@@ -80,7 +96,7 @@ def reorder_minibatch(minibatch_data, minibatch_label):
 def make_minibatch(indices, data, label):
     """
     Extracts a minibatch from the given data and label tensors using the given indices. 
-    
+
     (Taken from Dr. Laurent's batching example)
 
     Returns a tuple of two tensors: (data, labels)
@@ -120,15 +136,15 @@ def load_data_tensors(use_og_data_only):
 
 
 def train_model(
-    model, 
-    loss_func, 
-    optimizer, 
-    data_train, 
-    labels_train, 
-    n_epochs, 
-    batch_size,
-    save_path, 
-    device):
+        model,
+        loss_func,
+        optimizer,
+        data_train,
+        labels_train,
+        n_epochs,
+        batch_size,
+        save_path,
+        device):
     """
     Train the given model with the specified hyperparameters for n_epochs 
     and save the model to a file. 
@@ -184,8 +200,7 @@ def evaluate_model(model, tok_to_ix, device, use_og_data_only=True, bs=50):
         og_file_path='data/test_reddit_submissions.csv',
         aug_file_path='data/test_synonym_augmented_reddit_submissions.csv',
         include_og=True,
-        include_aug=not use_og_data_only
-    )
+        include_aug=not use_og_data_only)
 
     test_data = strings_to_tensors(test_data, tok_to_ix)
     test_labels = torch.LongTensor(test_labels)
