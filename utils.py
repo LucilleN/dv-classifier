@@ -20,7 +20,7 @@ def parse_command_line_args():
     parser.add_argument('--train_from_scratch', action='store_true', dest='retrain', default=False)
     parser.add_argument('--use_og_data_only', action='store_true', default=False)
     parser.add_argument('--use_2_classes', action='store_true', default=False)
-    parser.add_argument('--n_epochs', action="store", type=int, default=50)
+    parser.add_argument('--n_epochs', action="store", type=int, default=10)
     parser.add_argument('--batch_size', action="store", type=int, default=10)
     parser.add_argument('--learning_rate', action="store", type=float, default=0.01)
     parser.add_argument('--hidden_size', action="store", type=int, default=25)
