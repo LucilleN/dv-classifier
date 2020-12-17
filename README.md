@@ -34,15 +34,14 @@ For each file, you can add the following optional command line arguments if you 
 
 | Command Line Option           | Explanation |
 | ----------------------------- | ----------- |
-| `--train_from_current` | If set, continues training the specified model from its current state. All other flags are ignored and the existing default data-loading hyperparameters are used. |
-| `--train_from_scratch` | If set, trains the specified model from scratch. Any or all of the following flags can be set; any that are not set simply default to the existing default hyperparameters. |
-| `--use_og_data_only` | If set, trains the model on only the original data. |
-| `--use_og_and_aug_data` | If set, trains the model on the combined original + augmented dataset. |
-| `--use_3_classes` | If set, trains with all 3 classes: `0` for `critical`, `1` for `noncritical`, and `2` for `general/unrelated`. |
-| `--use_2_classes` | If set, trains with only 2 classes: `0` for `DV-related` (combining critical and noncritical) and `1` for `general/unrelated`. |
+| `--train_from_scratch` | If set, trains the specified model from scratch. Any or all of the following flags can be set; any that are not set simply default to the existing default hyperparameters. If unset, will load the model in `models/`|
+| `--use_og_data_only` | If set, trains the model on only the original data rather than including augmented data. |
+| `--use_2_classes` | If set, trains with only 2 classes rather than the default 3: `0` for `DV-related` (combining critical and noncritical) and `1` for `general/unrelated`. |
 | `--n_epochs` | Takes in an integer; specifies the number of epochs to train for. Defaults to 10 epochs for all models. |
 | `--batch_size` | Takes in an integer; specifies the number of samples to use in each batch. Defaults to 50 samples for all models. |
 | `--learning_rate` | Takes in a float; specifies the learning rate to train with. |
+| `--hidden_size` | Takes in an int; specifies the hidden size dimension for the given NN to train on. |
+| `--num_layers` | Takes in an int; specifies the number of layers within the specialized NN layer. |
 
 #### When you're done
 
