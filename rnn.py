@@ -19,7 +19,6 @@ class RNN(nn.Module):
 
     def __init__(self, vocab_size, hidden_size, output_size, num_layers, bidirectional=False):
         super().__init__()
-        # self.bidirectional = bidirectional
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.emb = nn.Embedding(vocab_size, hidden_size)
