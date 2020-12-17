@@ -10,10 +10,10 @@ def parse_command_line_args():
     """
     Handles the parsing of command line arguments for all files.
     Returns `args`, the object that contains all the command line arguments,
-    which can be accessed as follows:
+    which can be accessed like this:
         args.retrain
         args.n_epochs
-        args.num_layers 
+        ...etc.
     """
     parser = ArgumentParser(description='Neural DV-Classifier')
 
@@ -184,8 +184,7 @@ def evaluate_model(model, tok_to_ix, device, use_og_data_only=True, bs=50):
         og_file_path='data/test_reddit_submissions.csv',
         aug_file_path='data/test_synonym_augmented_reddit_submissions.csv',
         include_og=True,
-        include_aug=not use_og_data_only
-    )
+        include_aug=not use_og_data_only)
 
     test_data = strings_to_tensors(test_data, tok_to_ix)
     test_labels = torch.LongTensor(test_labels)
