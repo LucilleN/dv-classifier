@@ -30,6 +30,12 @@ python3 rnn.py
 python3 gru.py
 ```
 
+#### Downloading the pretrained models
+
+We have pretrained all of our models for easy evaluation. They are located in this [Google Drive folder](https://drive.google.com/drive/folders/1Ltcxrsl6B9RtzF0cJIqJjRFpcHiBfKAa?usp=sharing). Please download them and place them in `models/` before running any of our files without the `--train_from_scratch` flag (see below for available flags).
+
+#### Flags
+
 For each file, you can add the following optional command line arguments if you want to retrain them or continue training them from their current state. When they are finished training, they will evaluate on the test set and print out the classification report. Warning: some of these models can take many hours to train.
 
 | Command Line Option           | Explanation |

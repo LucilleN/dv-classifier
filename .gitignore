@@ -150,4 +150,4 @@ node_modules
 /GoogleNews-vectors-negative300.bin
 /bert-base-uncased/
 # prevents any pretrained models from being added
-/models/*
+/models/*.pt
