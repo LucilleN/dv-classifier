@@ -19,7 +19,6 @@ class RNN(nn.Module):
 
     def __init__(self, vocab_size, hidden_size, output_size, num_layers, bidirectional=False):
         super().__init__()
-        # self.bidirectional = bidirectional
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.emb = nn.Embedding(vocab_size, hidden_size)
@@ -52,10 +51,6 @@ def train_model(use_og_data_only, n_epochs, bs, learning_rate):
         aug_file_path='data/train_synonym_augmented_reddit_submissions.csv',
         include_og=True,
         include_aug=not use_og_data_only)
-
-    # need this since we're no longer using train_test_split
-    np.random.shuffle(posts_train)
-    np.random.shuffle(labels_train)
 
     tok_to_ix = build_vocab(posts_train)
 
