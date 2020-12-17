@@ -127,8 +127,7 @@ def train_model(
     data_train, 
     labels_train, 
     n_epochs, 
-    batch_size, 
-    learning_rate, 
+    batch_size,
     save_path, 
     device):
     """
