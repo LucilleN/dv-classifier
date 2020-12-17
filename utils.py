@@ -1,3 +1,10 @@
+"""
+This script holds all our utility functions for common tasks within our project including:
+- creating and manging minibatches
+- loading and preprocessing data
+- parsing command line arguments
+- training / evaluation neural network models
+"""
 import torch
 import torch.nn as nn
 from sklearn.metrics import classification_report
