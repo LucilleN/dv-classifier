@@ -23,8 +23,8 @@ def parse_command_line_args():
     parser.add_argument('--n_epochs', action="store", type=int, default=50)
     parser.add_argument('--batch_size', action="store", type=int, default=10)
     parser.add_argument('--learning_rate', action="store", type=float, default=0.01)
-    parser.add_argument('--hidden_size', action="store", type=float, default=25)
-    parser.add_argument('--num_layers', action="store", type=float, default=-1)
+    parser.add_argument('--hidden_size', action="store", type=int, default=25)
+    parser.add_argument('--num_layers', action="store", type=int, default=-1)
 
     args = parser.parse_args()
     return args
