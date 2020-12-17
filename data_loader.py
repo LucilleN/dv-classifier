@@ -28,9 +28,9 @@ import argparse
 import nltk
 
 
-# - The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories, 
-# calls for help, requests for advice. 
-# - The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to 
+# - The domesticviolence and survivorsofabuse subreddits will be class 0, critical; these are personal stories,
+# calls for help, requests for advice.
+# - The abuseInterrupted subreddit will be class 1, noncritical; it mostly contains empty text, links to
 # articles, general statements about abuse, etc.
 # - Everything else will be class 2, general/unrelated
 CLASSES = {
@@ -65,12 +65,12 @@ IX_TO_LABEL = {
 
 
 def load_data(
-    og_file_path, 
-    aug_file_path=None, 
-    include_og=True, 
-    include_aug=False, 
-    fraction_class_2_to_load=1.0, 
-    combine_classes_01=False):
+        og_file_path,
+        aug_file_path=None,
+        include_og=True,
+        include_aug=False,
+        fraction_class_2_to_load=1.0,
+        combine_classes_01=False):
     """
     Loads text and labels from dataset stored in the specified file_path(s), which must be CSV's,
     and returns a tuple of two parallel numpy arrays, one that contains the raw post strings,
@@ -95,7 +95,7 @@ def load_data(
     class_2_max = int(fraction_class_2_to_load * CLASS_COUNTS[2])
 
     for file_path in sources:
-        
+
         with open(file_path) as f:
             reader = csv.reader(f)
 
@@ -105,7 +105,7 @@ def load_data(
                 subreddit_name = row[0]
                 label = CLASSES[subreddit_name]
                 if combine_classes_01:
-                    # If we're combining the critical and noncritical classes, than labels 0 or 1 will be 
+                    # If we're combining the critical and noncritical classes, than labels 0 or 1 will be
                     # collapsed into label 0, and label 2 will become label 1
                     label = 0 if label < 2 else 1
                 post_title = row[2]
@@ -122,8 +122,9 @@ def load_data(
     if fraction_class_2_to_load < 1.0:
         class_2_indexes = np.where(labels == 2)[0]
         everything_else = np.where(labels != 2)[0]
-        class_2_subset_indexes = np.random.choice(class_2_indexes, size=class_2_max)
-        
+        class_2_subset_indexes = np.random.choice(
+            class_2_indexes, size=class_2_max)
+
         class_2_posts = posts[class_2_subset_indexes]
         class_2_labels = labels[class_2_subset_indexes]
 
@@ -147,7 +148,7 @@ def create_new_rows(seed_rows, num_new_rows, new_rows, aug):
     - new_rows: the list that this method will directly add new samples to
     - aug: the data augmentation model to use to generate new samples 
     """
-    
+
     # Storing these instance methods locally makes performance marginally faster.
     augment = aug.augment
     append = new_rows.append
@@ -175,14 +176,14 @@ def augment_data(num_new_class_0, num_new_class_1, clear_old_augmented_data=Fals
     This function makes use of the nlpaug library's word augmenter. 
     """
 
-    # We experimented with a couple other nlpaug models, but we ended up choosing SynonymAug 
-    # because it gave us the most natural-sounding and least noisy samples. 
+    # We experimented with a couple other nlpaug models, but we ended up choosing SynonymAug
+    # because it gave us the most natural-sounding and least noisy samples.
     # Other models we tried were:
     #   naw.WordEmbsAug             this one uses word2vec to find similar words for augmentation; it
-    #                               ended up giving us very noisy data that made the performance of 
+    #                               ended up giving us very noisy data that made the performance of
     #                               all models decrease.
     #   naw.ContextualWordEmbsAug   this one uses BERT to do the same as the above; it was slightly
-    #                               better, but still pretty noisy. 
+    #                               better, but still pretty noisy.
     aug = naw.SynonymAug(aug_src='wordnet')
 
     new_rows = []
@@ -192,10 +193,13 @@ def augment_data(num_new_class_0, num_new_class_1, clear_old_augmented_data=Fals
         rows = list(reader)[1:]
         print('unfiltered rows: {}'.format(len(rows)))
 
-        seed_rows_with_class_0 = list(filter(lambda r: CLASSES[r[0]] == 0, rows))
-        seed_rows_with_class_1 = list(filter(lambda r: CLASSES[r[0]] == 1, rows))
-        print('filtered rows: {}'.format(len(seed_rows_with_class_0) + len(seed_rows_with_class_1)))
-        
+        seed_rows_with_class_0 = list(
+            filter(lambda r: CLASSES[r[0]] == 0, rows))
+        seed_rows_with_class_1 = list(
+            filter(lambda r: CLASSES[r[0]] == 1, rows))
+        print('filtered rows: {}'.format(
+            len(seed_rows_with_class_0) + len(seed_rows_with_class_1)))
+
         print('generating new data with class 0')
         create_new_rows(seed_rows_with_class_0, num_new_class_0, new_rows, aug)
         print('generating new data with class 1')
@@ -221,7 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_new_class_1',
                         type=int, default=1000, help='The number of samples of class 1 to generate')
     parser.add_argument('--write_to_path',
-                        type=str, default='data/synonym_augmented_reddit_submissions.csv', 
+                        type=str, default='data/synonym_augmented_reddit_submissions.csv',
                         help='The relative path of the file to write or append the new data to')
 
     args = parser.parse_args()
