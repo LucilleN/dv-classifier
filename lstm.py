@@ -100,22 +100,3 @@ if __name__ == "__main__":
         use_og_data_only=args.use_og_data_only, 
         bs=args.batch_size,
         device=device)
-
-"""
-Output:
-
-==============================
-
-Evaluation:
-              precision    recall  f1-score   support
-
-           0       0.00      0.00      0.00       253
-           1       0.66      0.71      0.69       324
-           2       0.96      0.99      0.97      6465
-
-    accuracy                           0.94      7042
-   macro avg       0.54      0.57      0.55      7042
-weighted avg       0.91      0.94      0.93      7042
-
-==============================
-"""
