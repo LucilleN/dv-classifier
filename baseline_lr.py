@@ -24,14 +24,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     posts_train, labels_train = load_data(
-        og_file_path="data/train_reddit_submissions.csv", 
-        aug_file_path="data/train_synonym_augmented_reddit_submissions.csv", 
-        include_og=True, 
+        og_file_path="data/train_reddit_submissions.csv",
+        aug_file_path="data/train_synonym_augmented_reddit_submissions.csv",
+        include_og=True,
         include_aug=not args.use_og_data_only)
     posts_test, labels_test = load_data(
-        og_file_path="data/test_reddit_submissions.csv", 
-        aug_file_path="data/test_synonym_augmented_reddit_submissions.csv", 
-        include_og=True, 
+        og_file_path="data/test_reddit_submissions.csv",
+        aug_file_path="data/test_synonym_augmented_reddit_submissions.csv",
+        include_og=True,
         include_aug=not args.use_og_data_only)
 
     vectorizer = CountVectorizer(ngram_range=(1, 1))

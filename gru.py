@@ -38,11 +38,12 @@ class GRU(nn.Module):
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    
+
     # If there's an available GPU, let's use it
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    data_train, labels_train, tok_to_ix = load_data_tensors(args.use_og_data_only)
+    data_train, labels_train, tok_to_ix = load_data_tensors(
+        args.use_og_data_only)
 
     if args.retrain:
         """
@@ -52,9 +53,9 @@ if __name__ == "__main__":
         num_layers = 1 if args.num_layers < 0 else args.num_layers
         vocab_size = len(tok_to_ix)
         output_size = len(np.unique(labels_train))
-        
+
         model = GRU(
-            hidden_size=hidden_size, 
+            hidden_size=hidden_size,
             num_layers=num_layers,
             vocab_size=vocab_size,
             output_size=output_size)
@@ -68,7 +69,7 @@ if __name__ == "__main__":
             optimizer=optimizer,
             data_train=data_train,
             labels_train=labels_train,
-            n_epochs=args.n_epochs, 
+            n_epochs=args.n_epochs,
             batch_size=args.batch_size,
             save_path=SAVE_PATH,
             device=device)
@@ -83,8 +84,8 @@ if __name__ == "__main__":
     evaluating the model on the testing set.
     """
     evaluate_model(
-        model=model, 
+        model=model,
         tok_to_ix=tok_to_ix,
-        use_og_data_only=args.use_og_data_only, 
+        use_og_data_only=args.use_og_data_only,
         bs=args.batch_size,
         device=device)
